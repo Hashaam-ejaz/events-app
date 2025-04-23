@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard | Club Events</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">Club Events</a>
+      <div class="ms-auto">
+        <button class="btn btn-outline-light btn-sm" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container py-4">
+    <h2 class="mb-4">Admin Dashboard</h2>
+
+    <!-- Action Buttons -->
+    <div class="mb-4">
+      <a href="create-event.html" class="btn btn-primary me-2">+ Create Event</a>
+      <a href="create-artist.html" class="btn btn-secondary">+ Add Artist</a>
+    </div>
+
+    <!-- Events Section -->
+    <h4>All Events</h4>
+    <div class="table-responsive mb-5">
+      <table class="table table-bordered table-hover" id="eventTable">
+        <thead class="table-dark">
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Date</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Category</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- Artists Section -->
+    <h4>All Artists</h4>
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover" id="artistTable">
+        <thead class="table-dark">
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Instagram</th>
+            <th>Facebook</th>
+            <th>Twitter</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // 🔐 Auth Check
+    if (!localStorage.getItem('token')) {
+      window.location.href = 'login.html';
+    }
+
+    async function fetchData() {
+      try {
+        // Load Events
+        const eventRes = await fetch('http://localhost:5000/api/events');
+        const events = await eventRes.json();
+        const eventBody = document.querySelector('#eventTable tbody');
+
+        if (events.length === 0) {
+          eventBody.innerHTML = '<tr><td colspan="6">No events found.</td></tr>';
+        } else {
+          eventBody.innerHTML = events.map((e, i) => `
+            <tr>
+              <td>${i + 1}</td>
+              <td>${e.name}</td>
+              <td>${e.event_date}</td>
+              <td>${e.start_time.slice(0, 5)}</td>
+              <td>${e.end_time.slice(0, 5)}</td>
+              <td>${e.category}</td>
+            </tr>
+          `).join('');
+        }
+
+        // Load Artists
+        const artistRes = await fetch('http://localhost:5000/api/artists');
+        const artists = await artistRes.json();
+        const artistBody = document.querySelector('#artistTable tbody');
+
+        if (artists.length === 0) {
+          artistBody.innerHTML = '<tr><td colspan="5">No artists found.</td></tr>';
+        } else {
+          artistBody.innerHTML = artists.map((a, i) => `
+            <tr>
+              <td>${i + 1}</td>
+              <td>${a.name}</td>
+              <td><a href="${a.instagram}" target="_blank">${a.instagram ? 'View' : '-'}</a></td>
+              <td><a href="${a.facebook}" target="_blank">${a.facebook ? 'View' : '-'}</a></td>
+              <td><a href="${a.twitter}" target="_blank">${a.twitter ? 'View' : '-'}</a></td>
+            </tr>
+          `).join('');
+        }
+
+      } catch (error) {
+        console.error('Failed to load dashboard data', error);
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = 'index.html';
+    }
+
+    fetchData();
+  </script>
+
+</body>
+</html>
